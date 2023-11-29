@@ -1,0 +1,268 @@
+import java.util.*;
+class BestFirst{
+    // A Node class for GBFS Pathfinding
+    static class Node{
+        int v, weight;
+        Node(int v, int weight){
+            this.v=v;
+            this.weight=weight;
+        }
+    }
+    // pathNode class will help to store
+    // the path from src to dest.
+    static class pathNode{
+        int node;
+        pathNode parent;
+        pathNode(int node, pathNode parent){
+            this.node=node;
+            this.parent=parent;
+        }
+    }
+
+    // Function to add edge in the graph.
+    static void addEdge(int u, int v, int weight){
+        // Add edge u -> v with weight weight.
+        adj.get(u).add(new Node(v, weight));
+    }
+
+    // Declaring the adjacency list;
+    static List<List<Node>> adj;
+    // Greedy best first search algorithm function
+    private static List<Integer> GBFS(int h[]
+            , int V, int src, int dest){
+        /* This function returns a list of
+            integers that denote the shortest
+            path found using the GBFS algorithm.
+            If no path exists from src to dest, we will return an empty list.
+         */
+        // Initializing openList and closeList.
+        List<pathNode> openList = new ArrayList<>();
+        List<pathNode> closeList = new ArrayList<>();
+
+        // Inserting src in openList.
+        openList.add(new pathNode(src, null));
+
+        // Iterating while the openList
+        // is not empty.
+
+        while(!openList.isEmpty()){
+
+            pathNode currentNode = openList.get(0);
+            int currentIndex = 0;
+            // Finding the node with the least 'h' value.
+
+            for(int i = 0; i < openList.size(); i++){
+                if(h[openList.get(i).node] <
+                        h[currentNode.node]){
+                    currentNode = openList.get(i);
+                    currentIndex = i;
+                }
+            }
+
+            // Removing the currentNode from
+            // the openList and adding it in
+            // the closeList.
+            openList.remove(currentIndex);
+            closeList.add(currentNode);
+
+            // If we have reached the destination node.
+            if(currentNode.node == dest){
+                // Initializing the 'path' list.
+                List<Integer> path = new ArrayList<>();
+                pathNode cur = currentNode;
+
+                // Adding all the nodes in the
+                // path list through which we have
+                // reached to dest.
+                while(cur != null){
+                    path.add(cur.node);
+                    cur = cur.parent;
+                }
+
+                // Reversing the path, because
+                // currently it denotes path
+                // from dest to src.
+                Collections.reverse(path);
+                return path;
+            }
+
+            // Iterating over adjacents of 'currentNode'
+            // and adding them to openList if
+            // they are neither in openList or closeList.
+            for(Node node: adj.get(currentNode.node)){
+                for(pathNode x : openList){
+                    if(x.node == node.v) continue;
+                }
+                for(pathNode x : closeList){
+                    if(x.node == node.v) continue;
+                }
+                openList.add(new pathNode(node.v, currentNode));
+            }
+        }
+
+        return new ArrayList<>();
+    }
+    public static void main(String args[]){
+        // Initializing the adjacency list.
+        adj=new ArrayList<>();
+
+        /* Making the following graph
+                    src = 0
+                   / | \
+                  /  |  \
+                 1   2   3
+                /\   |   /\
+               /  \  |  /  \
+              4    5 6 7   8
+                      /
+                     /
+                   dest = 9
+        */
+        // Total number of vertices.
+        int V = 10;
+        for(int i = 0; i < V; i++)
+            adj.add(new ArrayList<>());
+
+        addEdge(0, 1, 2);
+        addEdge(0, 2, 1);
+        addEdge(0, 3, 10);
+        addEdge(1, 4, 3);
+        addEdge(1, 5, 2);
+        addEdge(2, 6, 9);
+        addEdge(3, 7, 5);
+        addEdge(3, 8, 2);
+        addEdge(7, 9, 5);
+
+        // Defining the heuristic values for each node.
+        int h[] = {20, 22, 21, 10,
+                25, 24, 30, 5, 12, 0};
+        List<Integer> path = GBFS(h, V, 0, 9);
+        for(int i = 0; i < path.size() - 1; i++){
+            System.out.print(path.get(i)+" --> ");
+        }
+        System.out.println(path.get(path.size()-1));
+
+
+    }
+}
+
+
+///////////////////////////////////////////
+
+import java.util.*;
+
+class Node implements Comparable<Node> {
+    int value;
+    int heuristic;
+
+    public Node(int value, int heuristic) {
+        this.value = value;
+        this.heuristic = heuristic;
+    }
+
+    @Override
+    public int compareTo(Node other) {
+        return Integer.compare(this.heuristic, other.heuristic);
+    }
+}
+
+public class BestFirstSearch {
+    public static void main(String[] args) {
+        Map<Integer, List<Integer>> graph = new HashMap<>();
+        graph.put(0, Arrays.asList(1, 2, 3));
+        graph.put(1, Arrays.asList(0, 4));
+        graph.put(2, Arrays.asList(0, 4, 5));
+        graph.put(3, Arrays.asList(0, 5));
+        graph.put(4, Arrays.asList(1, 2, 6));
+        graph.put(5, Arrays.asList(2, 3, 6));
+        graph.put(6, Arrays.asList(4, 5, 7));
+        graph.put(7, Arrays.asList());
+
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Enter the start state: ");
+        int startState = scanner.nextInt();
+
+        System.out.print("Enter the goal state: ");
+        int goalState = scanner.nextInt();
+
+        scanner.close();
+
+        Map<Integer, Integer> heuristicValues = calculateManhattanHeuristics(graph, goalState);
+
+        for (Map.Entry<Integer, Integer> entry : heuristicValues.entrySet()) {
+            System.out.println("Heuristic for Node " + entry.getKey() + ": " + entry.getValue());
+        }
+
+        List<Integer> path = bestFirstSearch(graph, heuristicValues, startState, goalState);
+        System.out.println("Path: " + path);
+    }
+
+    public static Map<Integer, Integer> calculateManhattanHeuristics(Map<Integer, List<Integer>> graph, int goal) {
+        Map<Integer, Integer> heuristicValues = new HashMap<>();
+
+        Map<Integer, int[]> nodeCoordinates = new HashMap<>();
+        nodeCoordinates.put(0, new int[] { 0, 0 });
+        nodeCoordinates.put(1, new int[] { 5, 8 });
+        nodeCoordinates.put(2, new int[] { 8, 5 });
+        nodeCoordinates.put(3, new int[] { 12, 2 });
+        nodeCoordinates.put(4, new int[] { 3, 3 });
+        nodeCoordinates.put(5, new int[] { 7, 7 });
+        nodeCoordinates.put(6, new int[] { 11, 11 });
+        nodeCoordinates.put(7, new int[] { 15, 15 });
+
+        int[] goalCoordinates = nodeCoordinates.get(goal);
+
+        for (int node : graph.keySet()) {
+            int[] coordinates = nodeCoordinates.get(node);
+            int distance = calculateManhattanDistance(coordinates, goalCoordinates);
+            heuristicValues.put(node, distance);
+        }
+
+        return heuristicValues;
+    }
+
+    private static int calculateManhattanDistance(int[] point1, int[] point2) {
+        return Math.abs(point1[0] - point2[0]) + Math.abs(point1[1] - point2[1]);
+    }
+
+    public static List<Integer> bestFirstSearch(Map<Integer, List<Integer>> graph,
+            Map<Integer, Integer> heuristicValues, int start, int goal) {
+        PriorityQueue<Node> queue = new PriorityQueue<>();
+        Map<Integer, Integer> parent = new HashMap<>();
+        Set<Integer> visited = new HashSet<>();
+
+        queue.offer(new Node(start, heuristicValues.get(start)));
+
+        while (!queue.isEmpty()) {
+            Node currentNode = queue.poll();
+            int current = currentNode.value;
+
+            if (current == goal) {
+                return reconstructPath(parent, current);
+            }
+
+            visited.add(current);
+
+            for (int neighbor : graph.getOrDefault(current, Collections.emptyList())) {
+                if (!visited.contains(neighbor)) {
+                    parent.put(neighbor, current);
+                    queue.offer(new Node(neighbor, heuristicValues.get(neighbor)));
+                }
+            }
+        }
+
+        return Collections.emptyList();
+    }
+
+    public static List<Integer> reconstructPath(Map<Integer, Integer> parent, int goal) {
+        List<Integer> path = new ArrayList<>();
+        while (parent.containsKey(goal)) {
+            path.add(goal);
+            goal = parent.get(goal);
+        }
+        path.add(goal);
+        Collections.reverse(path);
+        return path;
+    }
+}
