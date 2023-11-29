@@ -1,130 +1,152 @@
-
 import java.util.*;
-class csp 
+
+class SimpleSolver
 {
-    static int[] use = new int[10];
+    static Scanner sc = new Scanner(System.in);
+    static ArrayList<Character> uniquechar = new ArrayList<Character>();
+    static int nos[] = {0,1,2,3,4,5,6,7,8,9};
+    static HashMap<Character, Integer> hm = new HashMap<Character, Integer>();
+    static int no1,no2,no3,count=0;
+    static boolean solutionfound=false;
+    static ArrayList<ArrayList<Integer>> permuts = new ArrayList<ArrayList<Integer>>();
+    static String s1,s2,s3;
 
-    static class Node 
+    public static void main(String[] args) throws InterruptedException
     {
-        char letter;
-        int value;
+        getInput();
+        System.out.println("Calculating. Please wait...");
+        calculate();
     }
 
-    static int isValid(Node[] nodeList, int uniqueChar, String s1, String s2, String s3) 
+    public static void getInput()
     {
-        int val1 = 0, val2 = 0, val3 = 0, m = 1, j, i;
+        System.out.print("Enter string 1: ");
+        s1 = sc.nextLine();
+        System.out.print("Enter string 2: ");
+        s2 = sc.nextLine();
+        System.out.print("Enter the expected result: ");
+        s3 = sc.nextLine();
 
-        for (i = s1.length() - 1; i >= 0; i--) 
-        {
-            char ch = s1.charAt(i);
-            for (j = 0; j < uniqueChar; j++)
-                if (nodeList[j].letter == ch)
-                    break;
-            val1 += m * nodeList[j].value;
-            m *= 10;
-        }
-
-        m = 1;
-        for (i = s2.length() - 1; i >= 0; i--) {
-            char ch = s2.charAt(i);
-            for (j = 0; j < uniqueChar; j++)
-                if (nodeList[j].letter == ch)
-                    break;
-            val2 += m * nodeList[j].value;
-            m *= 10;
-        }
-
-        m = 1;
-        for (i = s3.length() - 1; i >= 0; i--) {
-            char ch = s3.charAt(i);
-            for (j = 0; j < uniqueChar; j++)
-                if (nodeList[j].letter == ch)
-                    break;
-            val3 += m * nodeList[j].value;
-            m *= 10;
-        }
-
-        if (val3 == (val1 + val2))
-            return 1;
-        return 0;
+        addToArrayList(s1);
+        addToArrayList(s2);
+        addToArrayList(s3);
     }
 
-    static boolean permutation(int uniqueChar, Node[] nodeList, int n, String s1, String s2, String s3) 
+    public static void calculate()
     {
-        if (n == uniqueChar - 1) 
+        Collections.sort(uniquechar);
+        recurPermute(0 , nos);
+
+        // System.out.println(permuts.size());
+
+        for(int i=0;i<permuts.size();i++)
         {
-            for (int i = 0; i < 10; i++) 
+            for(int j=0;j<uniquechar.size();j++)
             {
-                if (use[i] == 0) 
-                {
-                    nodeList[n].value = i;
-                    if (isValid(nodeList, uniqueChar, s1, s2, s3) == 1) 
-                    {
-                        System.out.print("Solution found:");
-                        for (int j = 0; j < uniqueChar; j++)
-                            System.out.print(" " + nodeList[j].letter + " = " + nodeList[j].value);
-                        return true;
-                    }
-                }
+                hm.put(uniquechar.get(j),permuts.get(i).get(j));
             }
-            return false;
+
+            //iterateHashMap();
+
+
+            no1 = getNumber(s1);
+            no2 = getNumber(s2);
+            no3 = getNumber(s3);
+
+            if(no3==no1+no2 && getLengthOfInt(no1)==s1.length() && getLengthOfInt(no2)==s2.length() && getLengthOfInt(no3)==s3.length() && count<1)
+            {
+                solutionfound=true;
+                System.out.println(s1+":"+no1+"  "+s2+":"+no2+"  "+s3+":"+no3);
+                count++;
+            }
         }
 
-        for (int i = 0; i < 10; i++) {
-            if (use[i] == 0) {
-                nodeList[n].value = i;
-                use[i] = 1;
-                if (permutation(uniqueChar, nodeList, n + 1, s1, s2, s3))
-                    return true;
-                use[i] = 0;
-            }
-        }
-        return false;
+
+
+        if(!solutionfound)
+            System.out.println("No solution found!");
+
     }
 
-    static boolean solvePuzzle(String s1, String s2, String s3) {
-        int uniqueChar = 0;
-        int len1 = s1.length();
-        int len2 = s2.length();
-        int len3 = s3.length();
-
-        int[] freq = new int[26];
-
-        for (int i = 0; i < len1; i++)
-            ++freq[s1.charAt(i) - 'A'];
-        for (int i = 0; i < len2; i++)
-            ++freq[s2.charAt(i) - 'A'];
-        for (int i = 0; i < len3; i++)
-            ++freq[s3.charAt(i) - 'A'];
-
-        for (int i = 0; i < 26; i++)
-            if (freq[i] > 0)
-                uniqueChar++;
-
-        if (uniqueChar > 10) {
-            System.out.println("Invalid strings");
-            return false;
-        }
-
-        Node[] nodeList = new Node[uniqueChar];
-        for (int i = 0, j = 0; i < 26; i++) {
-            if (freq[i] > 0) {
-                nodeList[j] = new Node();
-                nodeList[j].letter = (char) (i + 'A');
-                j++;
-            }
-        }
-        Arrays.fill(use, 0);
-        return permutation(uniqueChar, nodeList, 0, s1, s2, s3);
-    }
-
-    public static void main(String[] args) 
+    public static void recurPermute(int k , int[] a )
     {
-        String s1 = "TRAIN";
-        String s2 = "TRACK";
-        String s3 = "RAILS";
+        if(k==a.length)
+        {
+            ArrayList<Integer> perm = new ArrayList<Integer>();
+            for(int i=0;i<a.length;i++)
+            {
+                perm.add(a[i]);
+            }
+            permuts.add(perm);
+            return ;
+        }
+        else
+        {
+            for (int i = k; i < a.length; i++)
+            {
+                swap(i , k , a);
+                recurPermute(k+1,a);
+                swap(i , k , a);
+            }
+        }
+    }
 
-        if (!solvePuzzle(s1, s2, s3))
-            System.out.println("No solution");
+    public static void swap(int i , int j , int[] num)
+    {
+        int t = num[i];
+        num[i] = num[j];
+        num[j] = t;
+    }
+
+    public static boolean found(char c)
+    {
+        boolean flag=false;
+        for(int i=0;i<uniquechar.size();i++)
+        {
+            if(uniquechar.get(i)==c)
+                flag=true;
+        }
+        if(flag)
+            return true;
+        else
+            return false;
+    }
+
+    public static void addToArrayList(String s)
+    {
+        for(int i=0;i<s.length();i++)
+        {
+            if(!found(s.charAt(i)))
+            {
+                uniquechar.add(s.charAt(i));
+            }
+        }
+    }
+
+    public static void iterateHashMap()
+    {
+        for (Map.Entry<Character, Integer> entry : hm.entrySet())
+        {
+            char key = entry.getKey();
+            int value = entry.getValue();
+
+            System.out.println("Key:"+key+" Value:"+value);
+        }
+    }
+
+    public static int getNumber(String s)
+    {
+
+        String temp="";
+        for(int i=0;i<s.length();i++)
+        {
+            temp=temp+hm.get(s.charAt(i));
+        }
+        return Integer.parseInt(temp);
+    }
+
+    public static int getLengthOfInt(int n)
+    {
+        return String.valueOf(n).length();
     }
 }
